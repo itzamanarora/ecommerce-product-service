@@ -12,15 +12,12 @@ import lombok.*;
 public class CategoryRequestDTO {
 
     @NotBlank(message = "Please provide a category name.")
-    @Size(max = 100)
+    @Size(max = 100, message = "Category name must not be exceed 100 characters")
     private String name;
 
     @NotBlank(message = "Please provide a category slug.")
-    @Size(max = 120)
+    @Size(max = 120, message = "Category slug must not be exceed 120 characters")
     private String slug;
 
     private String description;
-
-    private boolean isActive;
-    private boolean isDelete;
 }
