@@ -1,28 +1,37 @@
 package com.eCommerce.productService.controller;
 
+import com.eCommerce.productService.dto.categoryDTO.CategoryRequestDTO;
 import com.eCommerce.productService.dto.categoryDTO.CategoryResponseDTO;
-import com.eCommerce.productService.service.CategoryService;
+import com.eCommerce.productService.service.impl.CategoryServiceImpl;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/api/v1/category")
+import java.util.List;
+
+@RequestMapping("/api/v1/categories")
 @RestController
 public class CategoryController {
 
-    private final CategoryService categoryService;
+    private final CategoryServiceImpl categoryServiceImpl;
 
-    public CategoryController(CategoryService categoryService) {
-        this.categoryService = categoryService;
+    public CategoryController(CategoryServiceImpl categoryServiceImpl) {
+        this.categoryServiceImpl = categoryServiceImpl;
     }
 
-    @GetMapping("/test")
-    public String test() {
-        return "OK";
+//    @GetMapping
+//    public ResponseEntity<CategoryResponseDTO> findByCategoryName(@RequestParam final String categoryName) {
+//        return ResponseEntity.status(HttpStatus.OK).body(categoryServiceImpl.findByCategoryName(categoryName));
+//    }
+
+    @PostMapping
+    public ResponseEntity<CategoryResponseDTO> createCategory(@Valid @RequestBody final CategoryRequestDTO categoryRequestDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(categoryServiceImpl.saveCategory(categoryRequestDTO));
     }
 
-    @GetMapping()
-    public ResponseEntity<CategoryResponseDTO> findByCategoryName(@RequestParam String search) {
-        return new ResponseEntity<>(categoryService.findByCategoryName(search), HttpStatus.OK);
+    @GetMapping
+    public ResponseEntity<List<CategoryResponseDTO>> getAllCategories() {
+        return ResponseEntity.ok(categoryServiceImpl.getAllCategories());
     }
 }

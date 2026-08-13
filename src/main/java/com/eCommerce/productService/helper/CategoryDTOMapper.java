@@ -5,15 +5,13 @@ import com.eCommerce.productService.dto.categoryDTO.CategoryResponseDTO;
 import com.eCommerce.productService.models.Category;
 import java.util.List;
 
-public class CatgeoryDTOMapper {
+public class CategoryDTOMapper {
 
     public static Category mapToCategory(CategoryRequestDTO categoryRequestDTO) {
         return new Category().builder()
                 .name(categoryRequestDTO.getName())
                 .slug(categoryRequestDTO.getSlug())
-                .description(categoryRequestDTO.getDescription())
-                .isActive(categoryRequestDTO.isActive())
-                .isDelete(categoryRequestDTO.isDelete()).build();
+                .description(categoryRequestDTO.getDescription()).build();
     }
 
     public static CategoryResponseDTO mapToCategoryResponse(Category category) {
@@ -29,7 +27,7 @@ public class CatgeoryDTOMapper {
 
     public static List<CategoryResponseDTO> categoryListDTOResponse(List<Category> categories) {
         return categories.stream()
-                .map(CatgeoryDTOMapper::mapToCategoryResponse)
+                .map(CategoryDTOMapper::mapToCategoryResponse)
                 .toList();
     }
 }

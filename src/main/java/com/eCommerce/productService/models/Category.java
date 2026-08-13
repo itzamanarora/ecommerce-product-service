@@ -31,6 +31,7 @@ public class Category {
 
     private String description;
 
+    @Builder.Default
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
@@ -42,6 +43,7 @@ public class Category {
     @UpdateTimestamp
     private Instant updatedAt;
 
+    @Builder.Default
     @Column(name = "is_delete", nullable = false)
     private boolean isDelete = false;
 }
