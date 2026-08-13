@@ -4,13 +4,16 @@ import com.eCommerce.productService.dto.categoryDTO.CategoryRequestDTO;
 import com.eCommerce.productService.dto.categoryDTO.CategoryResponseDTO;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface CategoryService {
-    public CategoryResponseDTO saveCategory(CategoryRequestDTO categoryRequestDTO);
+    CategoryResponseDTO saveCategory(final CategoryRequestDTO categoryRequestDTO);
 
-    public CategoryResponseDTO findByCategoryName(String categoryName);
+    CategoryResponseDTO findByCategoryName(final String categoryName);
 
 //    public List<CategoryResponseDTO> getAllCategories(Integer pageNo, Integer pageSize, String sortBy);
 
-    public List<CategoryResponseDTO> getAllCategories();
+    List<CategoryResponseDTO> getAllCategories();
+
+    void deleteById(final UUID categoryId);
 }

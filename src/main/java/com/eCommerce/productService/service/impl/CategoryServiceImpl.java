@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -60,5 +61,16 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryResponseDTO> getAllCategories() {
         return CategoryDTOMapper.categoryListDTOResponse(categoryRepository.findAll());
+    }
+
+    @Transactional
+    @Override
+    public void deleteById(UUID categoryId) {
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> {
+            throw new CategoryNotFoundException("Category not found with this Id: " + categoryId);
+        });
+        category.setDelete(true);
+        categoryRepository.save(category);
+        log.info("Category successfully deleted with Id: {}", categoryId);
     }
 }
