@@ -15,7 +15,12 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table( name = "categories")
+@Table(name = "categories",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_categories_name", columnNames = "name"),
+                @UniqueConstraint(name = "uk_categories_slug", columnNames = "slug")
+        }
+)
 public class Category {
 
     @Id
