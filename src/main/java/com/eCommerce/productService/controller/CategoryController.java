@@ -22,11 +22,6 @@ public class CategoryController {
         this.categoryServiceImpl = categoryServiceImpl;
     }
 
-//    @GetMapping
-//    public ResponseEntity<CategoryResponseDTO> findByCategoryName(@RequestParam final String categoryName) {
-//        return ResponseEntity.status(HttpStatus.OK).body(categoryServiceImpl.findByCategoryName(categoryName));
-//    }
-
     @PostMapping
     public ResponseEntity<CategoryResponseDTO> createCategory(@Valid @RequestBody final CategoryRequestDTO categoryRequestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryServiceImpl.saveCategory(categoryRequestDTO));
@@ -37,9 +32,24 @@ public class CategoryController {
         return ResponseEntity.ok(categoryServiceImpl.getAllCategories());
     }
 
+    @GetMapping("/{categoryId}")
+    public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable("categoryId") final UUID categoryId) {
+        return ResponseEntity.ok(categoryServiceImpl.getCategoryById(categoryId));
+    }
+
+    @PatchMapping("/{categoryId}")
+    public ResponseEntity<CategoryResponseDTO> updateCategory(
+            @PathVariable("categoryId") final UUID categoryId,
+            @RequestBody final CategoryRequestDTO categoryRequestDTO) {
+
+        return ResponseEntity.status(HttpStatus.OK).body(categoryServiceImpl.updateCategory(
+                categoryId,
+                categoryRequestDTO));
+    }
+
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<Void> deleteById(@PathVariable("categoryId") final UUID categoryId) {
         categoryServiceImpl.deleteById(categoryId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

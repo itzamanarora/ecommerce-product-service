@@ -9,11 +9,13 @@ import java.util.UUID;
 public interface CategoryService {
     CategoryResponseDTO saveCategory(final CategoryRequestDTO categoryRequestDTO);
 
-    CategoryResponseDTO findByCategoryName(final String categoryName);
-
-//    public List<CategoryResponseDTO> getAllCategories(Integer pageNo, Integer pageSize, String sortBy);
+//    List<CategoryResponseDTO> getAllCategories(final Integer pageNo, final Integer pageSize, final String sortBy);
 
     List<CategoryResponseDTO> getAllCategories();
+
+    CategoryResponseDTO getCategoryById(final UUID categoryId);
+
+    CategoryResponseDTO updateCategory(final UUID categoryId, final CategoryRequestDTO categoryRequestDTO);
 
     void deleteById(final UUID categoryId);
 }

@@ -9,10 +9,11 @@ import com.eCommerce.productService.models.Category;
 import com.eCommerce.productService.repository.CategoryRepository;
 import com.eCommerce.productService.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,50 +28,91 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryResponseDTO findByCategoryName(String categoryName) {
-        Category category = categoryRepository
-                .findByName(categoryName)
-                .orElseThrow(() -> {
-                    log.warn("Category not found with name: {}", categoryName);
-                    throw new CategoryNotFoundException(
-                            "Category Not Found: " + categoryName
-                    );
-                });
+    @Transactional
+    public CategoryResponseDTO saveCategory(CategoryRequestDTO categoryRequestDTO) {
+        log.info("Creating category with name: {}", categoryRequestDTO.getName());
+        Category category = CategoryDTOMapper.mapToCategory(categoryRequestDTO);
+        category.setSlug(categoryRequestDTO.getSlug().toLowerCase());
+        category.setActive(true);
+        category.setDelete(false);
+
+        try {
+            Category savedCategory = categoryRepository.saveAndFlush(category);
+            log.info("Category created successfully with id: {}", savedCategory.getCategoryId());
+
+            return CategoryDTOMapper.mapToCategoryResponse(savedCategory);
+        } catch (DataIntegrityViolationException ex) {
+            throw resolveConflict(ex, categoryRequestDTO.getName(), categoryRequestDTO.getSlug());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<CategoryResponseDTO> getAllCategories() {
+        return CategoryDTOMapper.categoryListDTOResponse(categoryRepository.findAllByIsDeleteFalse());
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public CategoryResponseDTO getCategoryById(final UUID categoryId) {
+        Category category = categoryRepository.findByCategoryIdAndIsDeleteFalse(categoryId).orElseThrow(() ->
+                new CategoryNotFoundException("Category not found with id: " + categoryId)
+        );
         return CategoryDTOMapper.mapToCategoryResponse(category);
     }
 
-    @Override
     @Transactional
-    public CategoryResponseDTO saveCategory(CategoryRequestDTO categoryRequestDTO) {
-        String categoryName = categoryRequestDTO.getName();
-        log.info("Creating category with name: {}", categoryName);
-
-        if (categoryRepository.findByName(categoryName).isPresent()) {
-            log.warn("Category already exists with name: {}", categoryName);
-            throw new CategoryAlreadyExistsException("Category with this name, Already Exists!");
-        }
-        Category category = CategoryDTOMapper.mapToCategory(categoryRequestDTO);
-        category.setActive(true);
-        category.setDelete(false);
-        Category savedCategory = categoryRepository.save(category);
-
-        log.info("Category created successfully with id: {}", savedCategory.getCategoryId());
-        return CategoryDTOMapper.mapToCategoryResponse(savedCategory);
-    }
-
     @Override
-    public List<CategoryResponseDTO> getAllCategories() {
-        return CategoryDTOMapper.categoryListDTOResponse(categoryRepository.findAll());
+    public CategoryResponseDTO updateCategory(final UUID categoryId, final CategoryRequestDTO categoryRequestDTO) {
+        log.info("Updating category with Id: {}", categoryId);
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
+                new CategoryNotFoundException("Category not found with this Id: " + categoryId)
+        );
+        if (StringUtils.hasText(categoryRequestDTO.getName())) {
+            category.setName(categoryRequestDTO.getName());
+        }
+        if (StringUtils.hasText(categoryRequestDTO.getSlug())) {
+            category.setSlug(categoryRequestDTO.getSlug());
+        }
+        if (categoryRequestDTO.getDescription() != null) {
+            category.setDescription(categoryRequestDTO.getDescription());
+        }
+
+        try {
+            categoryRepository.saveAndFlush(category);
+        } catch (DataIntegrityViolationException ex) {
+            throw resolveConflict(ex, categoryRequestDTO.getName(), categoryRequestDTO.getSlug());
+        }
+
+        log.info("Category updated successfully with Id: {}", categoryId);
+        return CategoryDTOMapper.mapToCategoryResponse(category);
     }
 
     @Transactional
     @Override
     public void deleteById(UUID categoryId) {
-        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> {
-            throw new CategoryNotFoundException("Category not found with this Id: " + categoryId);
-        });
+        log.info("Deleting Category with category Id: {}", categoryId);
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
+                new CategoryNotFoundException("Category not found with this Id: " + categoryId));
         category.setDelete(true);
         categoryRepository.save(category);
         log.info("Category successfully deleted with Id: {}", categoryId);
+    }
+
+    private CategoryAlreadyExistsException resolveConflict(
+            DataIntegrityViolationException ex,
+            String name,
+            String slug) {
+
+        if (ex.getCause() instanceof org.hibernate.exception.ConstraintViolationException hibernateEx) {
+            String constraintName = hibernateEx.getConstraintName();
+            if ("uk_categories_name".equals(constraintName)) {
+                return new CategoryAlreadyExistsException("Category already exists with name: " + name);
+            }
+            if ("uk_categories_slug".equals(constraintName)) {
+                return new CategoryAlreadyExistsException("Category already exists with slug: " + slug);
+            }
+        }
+        return new CategoryAlreadyExistsException("Category with this name or slug already exists");
     }
 }
